@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>React</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js"></script>
+    <script src="./js/react.min.js"></script>
+    <script src="./js/react-dom.min.js"></script>
+    <script src="./js/browser.min.js"></script>
+    <link href = "style.css" style = "text/css" rel="stylesheet">
+    <style>
+  </style>
+</head>
+
+<body>
+
+<div id="root"></div>
+
+<script type ="text/babel">
+//Title Bar Component
+const TitleBar = React.createClass({
+  render() {
+    return (
+      <div className="title-bar">
+        <div className="logo">
+          <img
+            className="logo-img"
+            src="https://pbs.twimg.com/profile_images/836511614698409984/Wg1lncjD.jpg"
+          />
+          <span className="logo-title">{this.props.title}</span>
+        </div>
+      </div>
+    );
+  }
+});
+
+// Component to add participant
+const AddParticipant = React.createClass({
+  handleSubmit(e) {
+    e.preventDefault(e);
+    let id = '';
+    for (var i = 0; i < 6; i++) {
+      var rand = Math.floor(Math.random() * 8 + 1).toString();
+      id = id + rand;
+    }
+
+    let name = e.target.name.value;
+    let email = e.target.email.value;
+    let phone = e.target.phone.value;
+
+    let addNewParticipant = [];
+
+    if (name.length > 0 && email.length > 0 && phone.length > 0) {
+      addNewParticipant.push({ id, name, email, phone });
+      e.target.name.value = '';
+      e.target.email.value = '';
+      e.target.phone.value = '';
+      this.props.onAdd(addNewParticipant[0]);
+    }
+  },
+  render() {
+    return (
+      <div className="add-participant">
+        <form className="form" onSubmit={this.handleSubmit}>
+          <tr>
+            <td>
+              <input
+                className="form-input"
+                type="text"
+                name="name"
+                placeholder="Full name"
+              />
+            </td>
+            <td>
+              <input
+                className="form-input"
+                type="email"
+                name="email"
+                placeholder="E-mail address"
+              />
+            </td>
+            <td>
+              <input
+                className="form-input"
+                type="text"
+                name="phone"
+                placeholder="Phone number"
+              />
+            </td>
+            <td>
+              <input className="add" type="submit" value="Add New" />
+            </td>
+          </tr>
+        </form>
+      </div>
+    );
+  }
+});
+
+// A single participant component
+const Participant = React.createClass({
+  getInitialState() {
+    return {
+      editing: false
+    };
+  },
+  handleDelete() {
+    this.props.onDelete(this.props.index);
+  },
+  handleEdit() {
+    this.props.onEdit(this.props.index);
+    this.setState({
+      editing: true
+    });
+  },
+  handleChange(e) {
+    console.log('Saved');
+    e.preventDefault(e);
+
+    let name = this.refs.name.value;
+    let email = this.refs.email.value;
+    let phone = this.refs.phone.value;
+    let saveUpdate = [];
+
+    if (name.length > 0 && email.length > 0 && phone.length > 0) {
+      saveUpdate.push({ name, email, phone });
+      this.props.onSave(saveUpdate[0], this.props.index);
+    }
+    this.setState({
+      editing: true
+    });
+  },
+  handleSave() {
+    let name = this.refs.name.value;
+    let email = this.refs.email.value;
+    let phone = this.refs.phone.value;
+    let saveUpdate = [];
+    if (name.length > 0 && email.length > 0 && phone.length > 0) {
+      saveUpdate.push({ name, email, phone });
+      this.props.onSave(saveUpdate[0], this.props.index);
+    }
+    this.setState({
+      editing: false
+    });
+  },
+  handleCancel() {
+    this.props.onCancel();
+    this.setState({
+      editing: false
+    });
+  },
+  renderNormal() {
+    return (
+      <tr>
+        <td>{this.props.participant.name}</td>
+        <td>{this.props.participant.email} </td>
+        <td>{this.props.participant.phone} </td>
+        <td className="edit-delet-buttons">
+          <span>
+            <i
+              onClick={this.handleEdit}
+              className="fa fa-pencil"
+              aria-hidden="true"
+            />
+            <i
+              onClick={this.handleDelete}
+              className="fa fa-trash-o"
+              aria-hidden="true"
+            />
+          </span>
+        </td>
+      </tr>
+    );
+  },
+  renderForm() {
+    return (
+      <tr>
+        <td>
+          <input
+            onChange={this.handleChange}
+            type="text"
+            ref="name"
+            placeholder="Full name"
+            defaultValue={this.props.participant.name}
+          />
+        </td>
+        <td>
+          <input
+            onChange={this.handleChange}
+            type="email"
+            ref="email"
+            placeholder="E-mail address"
+            defaultValue={this.props.participant.email}
+          />
+        </td>
+        <td>
+          <input
+            onChange={this.handleChange}
+            type="text"
+            ref="phone"
+            placeholder="Phone number"
+            defaultValue={this.props.participant.phone}
+          />
+        </td>
+        <td className="save-cancel-buttons">
+          <div>
+            <button onClick={this.handleCancel} className="cancel">
+              Cancel
+            </button>
+            <button onClick={this.handleSave} className="save">
+              Save
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  },
+  render() {
+    if (this.state.editing) {
+      return this.renderForm();
+    } else {
+      return this.renderNormal();
+    }
+  }
+});
+
+// List of participants component
+const Participants = React.createClass({
+  getInitialState() {
+    var participants = [];
+    var info = faker;
+
+    for (var i = 0; i < 20; i++) {
+      var id = faker.random.uuid();
+      var name = info.name.firstName() + ' ' + faker.name.lastName();
+      var email = info.internet.email();
+      var phone = info.phone.phoneNumberFormat();
+      participants.push({ id, name, email, phone });
+    }
+    return {
+      participants: participants
+    };
+  },
+  addNewParticipant(newParticipant) {
+    var arr = this.state.participants;
+    arr.push(newParticipant);
+    this.setState({
+      participants: arr
+    });
+  },
+  removeParticipant(i) {
+    console.log('Removing comment:' + i);
+    var arr = this.state.participants;
+    arr.splice(i, 1);
+    this.setState({
+      participants: arr
+    });
+  },
+  updateParticipant(newText, i) {
+    console.log('Updating comment:');
+    var arr = this.state.participants;
+    arr[i] = newText;
+    this.setState({
+      participants: arr
+    });
+  },
+  cancelUpdate() {
+    var arr = this.state.participants;
+    this.setState({
+      participants: arr
+    });
+  },
+  sortTableByName() {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById('myTable');
+    switching = true;
+
+    while (switching) {
+      switching = false;
+      rows = table.getElementsByTagName('TR');
+
+      for (i = 1; i < rows.length - 1; i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName('TD')[0];
+        y = rows[i + 1].getElementsByTagName('TD')[0];
+
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          shouldSwitch = true;
+          break;
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  },
+  eachParticipants(participant, i) {
+    let name = participant.name;
+    let email = participant.email;
+    let phone = participant.phone;
+
+    return (
+      <Participant
+        key={i}
+        index={i}
+        participant={participant}
+        onEdit={this.updateParticipant}
+        onDelete={this.removeParticipant}
+        onSave={this.updateParticipant}
+        onCancel={this.cancelUpdate}
+      />
+    );
+  },
+  render() {
+    return (
+      <div>
+        <AddParticipant onAdd={this.addNewParticipant} />
+        <table
+          className="participants add-participant partipant-table"
+          id="myTable"
+        >
+          <thead>
+            <tr>
+              <th onClick={this.sortTableByName} className="participant_info">
+                <a href="#">
+                  {' '}
+                  Name <i className="fa fa-arrow-down" aria-hidden="true" />
+                </a>
+              </th>
+              <th className="participant_info">E-mail address</th>
+              <th className="participant_info">Phone number</th>
+              <th className="participant_info" />
+            </tr>
+          </thead>
+          <tbody>{this.state.participants.map(this.eachParticipants)}</tbody>
+        </table>
+      </div>
+    );
+  }
+});
+
+// Component to render other components in a container
+const ParticipantsBoard = React.createClass({
+  render() {
+    return (
+      <div className="wrapper">
+        <TitleBar title="Nord Software" />
+        <div className="title">
+          <h3> List of Participants</h3>
+        </div>
+        <Participants />
+      </div>
+    );
+  }
+});
+
+ReactDOM.render(<ParticipantsBoard />, document.getElementById('root'));
+</script>
+</body>
+</html>
